@@ -13,6 +13,7 @@ Some features might be incomplete or in early stages of development. Contributio
 - Get table record ID
 
 #### Mutations
+- Create table record
 - Set table record field value
 
 <!-- ### To Do: -->

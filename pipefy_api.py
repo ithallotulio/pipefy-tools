@@ -27,7 +27,7 @@ def api(gql):
     return response
 
 
-def set_table_record_field(value, field_id, record_id="1015746414"):
+def set_table_record_field(value, field_id, record_id):
     # Updates the value of a field in a specific record in a table on Pipefy.
     #
     # Arguments:
@@ -58,7 +58,7 @@ def get_table_record_fields(table_id, output_format=0):
     template = Template(
         """
             {
-              table_record(id: "1015746414") {
+              table_record(id: $table_id) {
                 record_fields {
                   value
                   field {

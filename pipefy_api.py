@@ -1,3 +1,5 @@
+from pandas.plotting import table
+
 import pipefy_token
 import requests
 import json
@@ -25,7 +27,6 @@ def api(gql):
     payload = {"query": gql}
     response = requests.post(url, json=payload, headers=headers)
     return response
-
 
 def set_table_record_field(value, field_id, record_id):
     # Updates the value of a field in a specific record in a table on Pipefy.
@@ -80,7 +81,6 @@ def get_table_record_fields(table_id, output_format=0):
     else:
         return response
 
-
 def get_table_record_id(table_id, output_format=0):
     template = Template(
         """
@@ -105,4 +105,29 @@ def get_table_record_id(table_id, output_format=0):
         record_dict = {record['node']['title']: record['node']['id'] for record in records}
         return record_dict
     else:
+        return response
+
+def create_table_record(table_id, fields_attributes, title=""):
+        if title != "":
+            title = f'title: "{title}"'
+
+        fields = ",\n".join(
+            [f'{{field_id: "{field}", field_value: "{value}"}}' for field, value in fields_attributes.items()]
+        )
+
+        template = Template(
+            """
+                mutation {createTableRecord(input: {
+                  table_id: "$table_id"
+                  $title
+                  fields_attributes:[
+                    $fields
+                  ]}) {
+                    clientMutationId
+                  }
+                }
+            """
+        )
+        gql = template.substitute(table_id=table_id, title=title, fields=fields)
+        response = api(gql)
         return response

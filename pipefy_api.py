@@ -107,8 +107,8 @@ def get_table_record_id(table_id, output_format=0):
     else:
         return response
 
-def create_table_record(table_id, fields_attributes, title=""):
-        if title != "":
+def create_table_record(table_id, fields_attributes, title=None):
+        if title is not None:
             title = f'title: "{title}"'
 
         fields = ",\n".join(
@@ -128,6 +128,63 @@ def create_table_record(table_id, fields_attributes, title=""):
                 }
             """
         )
-        gql = template.substitute(table_id=table_id, title=title, fields=fields)
+        gql = template.substitute(table_id=table_id, title=title or "", fields=fields)
         response = api(gql)
         return response
+
+def get_all_table_record_ids(table_id, output_format=0):
+    """
+    Retorna todos os IDs e títulos de registros em uma tabela do Pipefy, com suporte a paginação.
+
+    Argumentos:
+        table_id (str): O ID da tabela.
+        output_format (int): O formato de saída. (0 para resposta bruta, 1 para JSON indentado, 2 para dicionário)
+
+    Retorna:
+        Os dados formatados de acordo com o output_format, contendo todos os registros.
+    """
+    all_records = []
+    cursor = None  # Inicializa o cursor como None para a primeira requisição
+    has_next_page = True  # Controle para o loop
+
+    while has_next_page:
+        template = Template(
+            """
+                {
+                  table_records(table_id: $table_id, after: $cursor) {
+                    edges {
+                      node {
+                        id
+                        title
+                      }
+                    }
+                    pageInfo {
+                      hasNextPage
+                      endCursor
+                    }
+                  }
+                }
+            """
+        )
+        cursor = "null" if cursor is None else f'"{cursor}"'
+
+        gql = template.substitute(table_id=table_id, cursor=cursor)
+        response = api(gql)
+        data = response.json()["data"]["table_records"]
+
+        # Extrai os registros atuais
+        edges = data["edges"]
+        all_records.extend(edges)
+
+        # Atualiza cursor e verifica se há próxima página
+        page_info = data["pageInfo"]
+        has_next_page = page_info["hasNextPage"]
+        cursor = page_info["endCursor"]
+
+    # Formata a saída
+    if output_format == 1:
+        return json.dumps(all_records, indent=4)
+    elif output_format == 2:
+        return {record['node']['title']: record['node']['id'] for record in all_records}
+    else:
+        return all_records

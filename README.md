@@ -10,10 +10,10 @@ Some features might be incomplete or in early stages of development. Contributio
 
 #### Queries
 - Get table record fields
-- Get table record ID
+- Get table record IDs
 
 #### Mutations
-- Create table record
+- Create table record (support to 50+)
 - Set table record field value
 
 <!-- ### To Do: -->
